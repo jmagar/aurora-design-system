@@ -316,9 +316,9 @@ export function CodeBlock({
         minWidth: 0,
         background: compact ? "color-mix(in srgb, var(--aurora-panel-strong) 92%, transparent)" : "var(--aurora-panel-strong)",
         border: "1px solid var(--aurora-border-default)",
-        borderRadius: compact ? "10px" : "var(--aurora-radius-2)",
+        borderRadius: compact ? "8px" : "var(--aurora-radius-2)",
         overflow: "hidden",
-        boxShadow: compact ? "var(--aurora-highlight-medium)" : "var(--aurora-shadow-medium)",
+        boxShadow: compact ? "none" : "var(--aurora-shadow-medium)",
       }}
     >
       {/* Titlebar */}
@@ -327,7 +327,7 @@ export function CodeBlock({
           display: "flex",
           alignItems: "center",
           gap: "10px",
-          padding: compact ? "6px 8px" : "10px 16px",
+          padding: compact ? "5px 7px" : "10px 16px",
           minWidth: 0,
           background: compact ? "color-mix(in srgb, var(--aurora-panel-medium) 62%, transparent)" : "var(--aurora-panel-medium)",
           borderBottom: "1px solid var(--aurora-border-default)",
@@ -339,7 +339,7 @@ export function CodeBlock({
           style={{
             display: "inline-flex",
             alignItems: "center",
-            fontSize: compact ? "11px" : "14px",
+            fontSize: compact ? "10.5px" : "14px",
             color: "var(--aurora-text-muted)",
             fontFamily: "var(--aurora-font-mono)",
             minWidth: 0,
@@ -364,8 +364,8 @@ export function CodeBlock({
           overflowX: "auto",
           overflowY: "auto",
           minWidth: 0,
-          maxHeight: compact ? "240px" : "480px",
-          padding: compact ? "8px 0" : "16px 0",
+          maxHeight: compact ? "220px" : "480px",
+          padding: compact ? "7px 0" : "16px 0",
         }}
       >
         {isDiff ? (
@@ -375,7 +375,7 @@ export function CodeBlock({
               width: "100%",
               borderCollapse: "collapse",
               fontFamily: "var(--aurora-font-mono)",
-              fontSize: compact ? "12px" : "15px",
+              fontSize: compact ? "11.5px" : "15px",
               lineHeight: compact ? "1.5" : "1.7",
             }}
           >
@@ -423,7 +423,7 @@ export function CodeBlock({
               width: "100%",
               borderCollapse: "collapse",
               fontFamily: "var(--aurora-font-mono)",
-              fontSize: compact ? "12px" : "15px",
+              fontSize: compact ? "11.5px" : "15px",
               lineHeight: compact ? "1.5" : "1.7",
             }}
           >

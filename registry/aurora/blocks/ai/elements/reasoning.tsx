@@ -73,8 +73,8 @@ const Reasoning = function Reasoning({ ref, isStreaming, duration, defaultOpen, 
             display: "inline-flex",
             alignItems: "center",
             flexWrap: "wrap",
-            gap: compact ? "5px" : "8px",
-            padding: compact ? "2px 0" : "4px 0",
+            gap: compact ? "4px" : "8px",
+            padding: compact ? "1px 0" : "4px 0",
             maxWidth: "100%",
             minHeight: 0,
             background: "none",
@@ -84,7 +84,7 @@ const Reasoning = function Reasoning({ ref, isStreaming, duration, defaultOpen, 
           }}
         >
           <Brain
-            size={compact ? 13 : 16}
+            size={compact ? 12 : 16}
             strokeWidth={1.8}
             aria-hidden="true"
             style={{ color: AXON, flexShrink: 0 }}
@@ -92,10 +92,10 @@ const Reasoning = function Reasoning({ ref, isStreaming, duration, defaultOpen, 
 
           <span
             style={{
-              fontSize: compact ? "11px" : "15px",
-              fontWeight: 700,
+              fontSize: compact ? "10.5px" : "15px",
+              fontWeight: compact ? 600 : 700,
               letterSpacing: 0,
-              color: isStreaming ? AXON : "var(--aurora-text-primary)",
+              color: isStreaming ? AXON : compact ? "var(--aurora-text-secondary)" : "var(--aurora-text-primary)",
               minWidth: 0,
             }}
           >
@@ -109,7 +109,7 @@ const Reasoning = function Reasoning({ ref, isStreaming, duration, defaultOpen, 
           )}
 
           <ChevronDown
-            size={compact ? 13 : 16}
+            size={compact ? 12 : 16}
             aria-hidden="true"
             style={{
               color: "var(--aurora-text-muted)",
@@ -123,10 +123,10 @@ const Reasoning = function Reasoning({ ref, isStreaming, duration, defaultOpen, 
         {open && (
           <div
             style={{
-              borderLeft: `${compact ? 2 : 3}px solid ${AXON}`,
-              paddingLeft: compact ? "9px" : "16px",
+              borderLeft: `${compact ? 1 : 3}px solid ${compact ? "color-mix(in srgb, var(--axon-orange) 44%, transparent)" : AXON}`,
+              paddingLeft: compact ? "8px" : "16px",
               marginLeft: compact ? "5px" : "8px",
-              marginTop: compact ? "3px" : undefined,
+              marginTop: compact ? "2px" : undefined,
               fontSize: compact ? "var(--aurora-type-caption)" : "var(--aurora-type-body)",
               lineHeight: compact ? "1.5" : "var(--aurora-line-body)",
               color: "var(--aurora-text-muted)",

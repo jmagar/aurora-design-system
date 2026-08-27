@@ -43,13 +43,10 @@ function panelStyle(style?: React.CSSProperties): React.CSSProperties {
 // Count badge — small neutral pill next to the title
 // ---------------------------------------------------------------------------
 
-function CountBadge({ count }: { count: number }) {
+function CountBadge({ count, compact = false }: { count: number; compact?: boolean }) {
+  if (compact) return <span className="ml-0.5 tabular-nums text-[9px]" style={{ color: "var(--aurora-text-muted)" }}>{count}</span>
   return (
-    <Badge
-      tone="neutral"
-      fill="outline"
-      className="min-w-[22px] justify-center px-1.5 tabular-nums"
-    >
+    <Badge tone="neutral" fill="outline" className="min-w-[22px] justify-center px-1.5 tabular-nums">
       {count}
     </Badge>
   )
@@ -88,14 +85,14 @@ const Sources = (
 
     const headerInner = (
       <>
-        <FileText className={compact ? "size-3.5 shrink-0" : "size-[18px] shrink-0"} aria-hidden style={{ color: "var(--aurora-accent-pink)" }} />
+        <FileText className={compact ? "size-3 shrink-0" : "size-[18px] shrink-0"} aria-hidden style={{ color: "var(--aurora-accent-pink)" }} />
         <span
           className="aurora-text-label"
-          style={{ color: "var(--aurora-text-primary)", fontSize: compact ? 12 : 16, fontWeight: 700 }}
+          style={{ color: compact ? "var(--aurora-text-secondary)" : "var(--aurora-text-primary)", fontSize: compact ? 11 : 16, fontWeight: compact ? 650 : 700 }}
         >
           {title}
         </span>
-        {collapsible ? <CountBadge count={count} /> : null}
+        {collapsible ? <CountBadge count={count} compact={compact} /> : null}
         {collapsible ? (
           <ChevronDown
             className={compact ? "ml-auto size-3.5 shrink-0 transition-transform" : "ml-auto size-[18px] shrink-0 transition-transform"}
@@ -112,12 +109,12 @@ const Sources = (
     return (
       <div
         ref={ref}
-        className={[compact ? "grid gap-1.5 p-2" : "grid gap-3 p-4", className].filter(Boolean).join(" ")}
+        className={[compact ? "grid gap-1 pt-1.5" : "grid gap-3 p-4", className].filter(Boolean).join(" ")}
         style={panelStyle(compact ? {
-          background: "color-mix(in srgb, var(--aurora-panel-medium) 38%, transparent)",
-          border: "1px solid color-mix(in srgb, var(--aurora-border-default) 78%, transparent)",
-          borderRadius: "10px",
-          boxShadow: "var(--aurora-highlight-medium)",
+          background: "transparent",
+          border: "none",
+          borderRadius: 0,
+          boxShadow: "none",
           ...style,
         } : style)}
         {...props}
@@ -129,7 +126,7 @@ const Sources = (
             size="unstyled"
             onClick={toggle}
             aria-expanded={open}
-            className={compact ? "flex items-center gap-1.5 bg-transparent p-0 text-left outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--aurora-focus-ring)] focus-visible:ring-offset-0" : "flex items-center gap-2.5 bg-transparent p-0 text-left outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--aurora-focus-ring)] focus-visible:ring-offset-0"}
+            className={compact ? "flex items-center gap-1 bg-transparent p-0 text-left outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--aurora-focus-ring)] focus-visible:ring-offset-0" : "flex items-center gap-2.5 bg-transparent p-0 text-left outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--aurora-focus-ring)] focus-visible:ring-offset-0"}
             data-density={density}
             style={{ borderRadius: "var(--aurora-radius-1)", cursor: "pointer", color: "inherit" }}
           >
@@ -138,7 +135,7 @@ const Sources = (
         ) : (
           <div className={compact ? "flex items-center gap-1.5" : "flex items-center gap-2.5"}>{headerInner}</div>
         )}
-        {!collapsible || open ? <div className={compact ? "grid gap-1.5" : "grid gap-2.5"}>{children}</div> : null}
+        {!collapsible || open ? <div className={compact ? "grid gap-0.5" : "grid gap-2.5"}>{children}</div> : null}
       </div>
     )
   }

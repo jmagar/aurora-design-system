@@ -211,7 +211,7 @@ test("rich chat turns keep hover actions inside paint-contained message items", 
     if (itemBox) for (const box of buttonBoxes) expect(box.bottom).toBeLessThanOrEqual(itemBox.y + itemBox.height + 0.5)
   }
 
-  await assertContainedRail(page.getByText("Sources & references"))
+  await assertContainedRail(page.getByText("References"))
   const reasoning = page.getByRole("button", { name: /Reasoned for 2s/i })
   await reasoning.click()
   await assertContainedRail(reasoning)

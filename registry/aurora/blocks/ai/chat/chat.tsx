@@ -81,7 +81,10 @@ function AttachmentCard({ attachment, onOpen, onRemove, compact = false }: { att
         {pending ? <Spinner size="sm" tone="cyan" /> : <FileText aria-hidden="true" />}
         {attachment.state === "done" ? <span className="aurora-chat-attachment__state-badge" aria-hidden="true"><Check /></span> : null}
       </AttachmentMedia>
-      <AttachmentContent><AttachmentTitle>{attachment.title}</AttachmentTitle>{compact ? null : <AttachmentDescription>{description}</AttachmentDescription>}</AttachmentContent>
+      <AttachmentContent>
+        <AttachmentTitle>{attachment.title}</AttachmentTitle>
+        {compact ? (pending ? <AttachmentDescription className="!text-[9px]">{description}</AttachmentDescription> : null) : <AttachmentDescription>{description}</AttachmentDescription>}
+      </AttachmentContent>
       {onRemove ? <AttachmentActions><AttachmentAction type="button" className={compact ? "!size-5 rounded-[5px] [&_svg]:!size-3.5" : undefined} aria-label={"Remove " + attachment.title} onClick={() => onRemove(attachment)}><X data-icon="inline-start" aria-hidden="true" /></AttachmentAction></AttachmentActions> : null}
       <AttachmentTrigger aria-label={"Preview " + attachment.title} onClick={() => onOpen(attachment)} />
     </Attachment>
@@ -104,7 +107,7 @@ function AssistantShowcase({ kind, reasoning }: { kind?: ShowcaseKind; reasoning
   }
   if (kind === "sources") {
     return (
-      <Sources density="compact" title="Sources & references" collapsible defaultOpen className="max-w-[640px]">
+      <Sources density="compact" title="References" collapsible defaultOpen className="max-w-[640px]">
         <Source density="compact" index={1} source={{ title: "shadcn chat components", href: "https://ui.shadcn.com/docs/changelog/2026-06-chat-components", badge: "DOCS" }} />
         <Source density="compact" index={2} source={{ title: "message-scroller.tsx", badge: "FILE" }} />
       </Sources>
@@ -148,7 +151,7 @@ function CompactSelect({ label, value, options, onValueChange, icon }: { label: 
   const tone = label === "Model" ? "model" : "reasoning"
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger aria-label={label} title={`${label}: ${value}`} data-chat-select={tone} className="aurora-chat-select !h-[22px] !w-auto min-w-0 max-w-[44%] flex-1 gap-0.5 rounded-full !px-1.5 !py-0 sm:min-w-[88px] sm:max-w-none sm:flex-none [&>svg]:!size-[11px]">
+      <SelectTrigger aria-label={label} title={`${label}: ${value}`} data-chat-select={tone} className="aurora-chat-select !h-[22px] !w-auto min-w-0 max-w-[44%] flex-1 gap-0.5 rounded-[7px] !px-1.5 !py-0 sm:min-w-[88px] sm:max-w-none sm:flex-none [&>svg]:!size-[11px]">
         <span className="flex min-w-0 items-center gap-1 overflow-hidden">{icon}<SelectValue className="truncate" /></span>
       </SelectTrigger>
       <SelectContent className="min-w-[160px]">
@@ -365,12 +368,12 @@ function AuroraChatBlock({ title = "Aurora Chat", subtitle = "Composable convers
                         <Message align={item.role === "user" ? "end" : "start"}>
                           {item.role === "assistant" ? <MessageAvatar aria-label="Aurora" className="!size-5 !min-w-5 sm:!size-[22px] sm:!min-w-[22px] [&_svg]:size-[11px] sm:[&_svg]:size-3"><Bot aria-hidden="true" /></MessageAvatar> : null}
                           <MessageContent className="relative gap-1">
-                            {item.role === "assistant" ? <MessageHeader className="min-h-0 gap-1 px-0 sm:gap-1.5"><span style={{ color: "var(--aurora-text-primary)", fontSize: "var(--aurora-type-caption)", fontWeight: "var(--aurora-weight-ui)" }}>Aurora</span>{item.streaming ? <span className="aurora-chat-stream-status" role="status"><span className="aurora-chat-stream-dot" aria-hidden="true" />Streaming</span> : null}</MessageHeader> : null}
+                            {item.role === "assistant" ? <MessageHeader className="min-h-0 gap-1 px-0 sm:gap-1.5"><span style={{ color: "var(--aurora-text-primary)", fontSize: "var(--aurora-type-caption)", fontWeight: "var(--aurora-weight-ui)" }}>Aurora</span>{item.streaming ? <span className="aurora-chat-stream-status" role="status"><span className="aurora-chat-stream-dot" aria-hidden="true" />Responding</span> : null}</MessageHeader> : null}
                             <BubbleGroup>
                               <Bubble variant={item.role === "user" ? "default" : "ghost"} align={item.role === "user" ? "end" : "start"} className={item.role === "assistant" ? "max-w-[64ch]" : "max-w-[86%] sm:max-w-[36ch]"}>
                                 <BubbleContent style={item.role === "user" ? { padding: "7px 10px", lineHeight: "1.45" } : { lineHeight: "1.55" }}>
                                   {item.text}
-                                  {item.streaming ? <span aria-hidden="true" className="ml-1 inline-block h-[1em] w-[2px] translate-y-[2px] rounded-full" style={{ background: "var(--aurora-accent-pink)", animation: "aurora-msg-caret 1.1s steps(1) infinite" }} /> : null}
+                                  {item.streaming ? <span aria-hidden="true" className="aurora-chat-stream-caret" /> : null}
                                 </BubbleContent>
                               </Bubble>
                               {item.attachments?.length ? <AttachmentGroup className="gap-1.5 py-0.5">{item.attachments.map((attachment) => <AttachmentCard key={attachment.id} attachment={attachment} onOpen={setPreviewAttachment} compact />)}</AttachmentGroup> : null}
