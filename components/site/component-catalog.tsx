@@ -13,6 +13,7 @@ import { CopyLine } from "@/components/site/site-ui"
 import { tint } from "@/components/site/style-tokens"
 import { EmptyState } from "@/registry/aurora/ui/empty-state"
 import { Button } from "@/registry/aurora/ui/button"
+import { Dialog, DialogContent, DialogTitle } from "@/registry/aurora/ui/dialog"
 
 /**
  * ComponentCatalog — the CD `aurora-site` LiveCatalog, wired to OUR gallery so
@@ -65,7 +66,9 @@ const LazyPreview = React.memo(function LazyPreview({ slug }: { slug: string }) 
     if (!node) return
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting)) setVisible(true)
+        if (!entries.some((e) => e.isIntersecting)) return
+        io.disconnect()
+        setVisible(true)
       },
       { rootMargin: "300px" },
     )
@@ -159,26 +162,12 @@ const CatalogTile = React.memo(function CatalogTile({
   onPick: (item: CatalogItem) => void
 }) {
   return (
-    // Not a <button>: the live preview inside renders real demos that contain
-    // their own buttons/inputs, and interactive content can't nest inside a
-    // button (invalid HTML → hydration errors).
     <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Open ${item.label}`}
-      onClick={() => onPick(item)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          onPick(item)
-        }
-      }}
       className="aurora-card aurora-catalog-tile aurora-catalog-rise"
       style={{
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        cursor: "pointer",
         textAlign: "left",
         padding: 0,
         borderRadius: "var(--aurora-radius-2)",
@@ -200,7 +189,24 @@ const CatalogTile = React.memo(function CatalogTile({
       >
         <LazyPreview slug={item.slug} />
       </div>
-      <div style={{ padding: "11px 13px 13px", display: "flex", flexDirection: "column", gap: 6 }}>
+      <button
+        type="button"
+        data-catalog-open
+        aria-label={`Open ${item.label}`}
+        onClick={() => onPick(item)}
+        style={{
+          padding: "11px 13px 13px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          width: "100%",
+          border: 0,
+          background: "transparent",
+          color: "inherit",
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <span
             style={{
@@ -234,7 +240,7 @@ const CatalogTile = React.memo(function CatalogTile({
             item.group
           )}
         </span>
-      </div>
+      </button>
     </div>
   )
 })
@@ -243,10 +249,12 @@ function DrawerArrow({
   dir,
   target,
   onPick,
+  compact = false,
 }: {
   dir: "left" | "right"
   target: CatalogItem | null
   onPick: (item: CatalogItem) => void
+  compact?: boolean
 }) {
   return (
     <button
@@ -256,9 +264,9 @@ function DrawerArrow({
         e.stopPropagation()
         if (target) onPick(target)
       }}
-      aria-label={target ? `${dir === "left" ? "Previous" : "Next"}: ${target.label}` : undefined}
+      aria-label={target ? `${dir === "left" ? "Previous" : "Next"}: ${target.label}` : `${dir === "left" ? "Previous" : "Next"} Component`}
       title={target ? `${dir === "left" ? "Previous" : "Next"}: ${target.label}` : undefined}
-      className="aurora-catalog-drawer-arrow grid size-[46px] flex-none place-items-center self-center rounded-[12px]"
+      className={`${compact ? "grid size-[30px] rounded-[8px]" : "aurora-catalog-drawer-arrow grid size-[46px] self-center rounded-[12px]"} flex-none place-items-center`}
       style={{
         background: "var(--aurora-control-surface)",
         border: "1px solid var(--aurora-border-strong)",
@@ -268,7 +276,7 @@ function DrawerArrow({
         cursor: target ? "pointer" : "default",
       }}
     >
-      {dir === "left" ? <ArrowLeft size={18} strokeWidth={1.75} /> : <ArrowRight size={18} strokeWidth={1.75} />}
+      {dir === "left" ? <ArrowLeft size={compact ? 14 : 18} strokeWidth={1.75} /> : <ArrowRight size={compact ? 14 : 18} strokeWidth={1.75} />}
     </button>
   )
 }
@@ -297,6 +305,7 @@ function LiveDrawer({
   // inside the drawer's stacking context, and its onClick stops propagation, so
   // clicking a menu item can't bubble to the backdrop and close the drawer.
   const [drawerHost, setDrawerHost] = React.useState<HTMLElement | null>(null)
+  const titleRef = React.useRef<HTMLHeadingElement>(null)
   const attachDrawerHost = React.useCallback((node: HTMLElement | null) => {
     if (node) setDrawerHost((prev) => (prev === node ? prev : node))
   }, [])
@@ -308,10 +317,7 @@ function LiveDrawer({
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose()
-        return
-      }
+      if (e.defaultPrevented || e.target !== titleRef.current) return
       const tag = (e.target as HTMLElement | null)?.tagName
       if (tag && /INPUT|TEXTAREA|SELECT/.test(tag)) return
       if (e.key === "ArrowLeft" && prev) onPick(prev)
@@ -319,34 +325,36 @@ function LiveDrawer({
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [onClose, onPick, prev, next])
+  }, [onPick, prev, next])
 
   return (
-    <div
-      role="presentation"
-      className="aurora-catalog-drawer-backdrop"
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 120,
-        background: "color-mix(in srgb, var(--aurora-page-bg) 62%, transparent)",
-        backdropFilter: "blur(2px)",
-        display: "flex",
-        alignItems: "stretch",
-        justifyContent: "center",
-        gap: 12,
-        padding: "5vh 20px",
+    <Dialog
+      open
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose()
       }}
     >
-      <DrawerArrow dir="left" target={prev} onPick={onPick} />
-      <aside
+      <DialogContent
+        hideClose
+        size="xl"
+        aria-describedby={undefined}
+        onOpenAutoFocus={(event) => {
+          event.preventDefault()
+          titleRef.current?.focus()
+        }}
+        className="aurora-catalog-drawer-backdrop !max-w-[min(880px,calc(100vw-24px))] flex-row items-stretch justify-center border-0 bg-transparent p-0"
+        style={{
+          width: "min(880px, calc(100vw - 24px))",
+          height: "90vh",
+          gap: 12,
+          background: "transparent",
+          boxShadow: "none",
+        }}
+      >
+        <DrawerArrow dir="left" target={prev} onPick={onPick} />
+        <aside
         ref={attachDrawerHost}
-        role="dialog"
         className="aurora-catalog-drawer"
-        aria-modal="true"
-        aria-label={item.label}
-        onClick={(e) => e.stopPropagation()}
         style={{
           width: "min(760px, 92vw)",
           maxHeight: "90vh",
@@ -364,7 +372,9 @@ function LiveDrawer({
           style={{ borderBottom: "1px solid var(--aurora-border-default)" }}
         >
           <div className="min-w-0 flex-1">
-            <div
+            <DialogTitle
+              ref={titleRef}
+              tabIndex={-1}
               style={{
                 fontFamily: "var(--aurora-font-display)",
                 fontWeight: 800,
@@ -374,7 +384,7 @@ function LiveDrawer({
               }}
             >
               {item.label}
-            </div>
+            </DialogTitle>
             <div style={{ fontSize: 11.5, fontFamily: "var(--aurora-font-sans)", color: "var(--aurora-text-muted)" }}>
               aurora · {item.group.toLowerCase()}
               {kotlin ? (
@@ -387,34 +397,8 @@ function LiveDrawer({
             </div>
           </div>
           <div className="aurora-catalog-drawer-mobile-nav" role="group" aria-label="Browse components">
-            <button
-              type="button"
-              disabled={!prev}
-              onClick={() => prev && onPick(prev)}
-              aria-label={prev ? `Previous: ${prev.label}` : "Previous component"}
-              className="grid size-[30px] place-items-center rounded-[8px]"
-              style={{
-                border: "1px solid var(--aurora-border-default)",
-                color: "var(--aurora-text-primary)",
-                opacity: prev ? 1 : 0.4,
-              }}
-            >
-              <ArrowLeft size={14} strokeWidth={1.8} />
-            </button>
-            <button
-              type="button"
-              disabled={!next}
-              onClick={() => next && onPick(next)}
-              aria-label={next ? `Next: ${next.label}` : "Next component"}
-              className="grid size-[30px] place-items-center rounded-[8px]"
-              style={{
-                border: "1px solid var(--aurora-border-default)",
-                color: "var(--aurora-text-primary)",
-                opacity: next ? 1 : 0.4,
-              }}
-            >
-              <ArrowRight size={14} strokeWidth={1.8} />
-            </button>
+            <DrawerArrow compact dir="left" target={prev} onPick={onPick} />
+            <DrawerArrow compact dir="right" target={next} onPick={onPick} />
           </div>
           <Link
             href={`/gallery/${item.slug}`}
@@ -425,7 +409,7 @@ function LiveDrawer({
               background: tint("--aurora-accent-primary", 10),
             }}
           >
-            Full page <ArrowUpRight size={13} strokeWidth={2} />
+            Full Page <ArrowUpRight size={13} strokeWidth={2} />
           </Link>
           <button
             type="button"
@@ -437,6 +421,9 @@ function LiveDrawer({
             <X size={16} />
           </button>
         </div>
+        <p className="sr-only" role="status" aria-live="polite">
+          {item.label}, item {idx + 1} of {list.length}
+        </p>
 
         <div className="aurora-scrollbar min-h-0 flex-1 overflow-y-auto p-5">
           <div className="aurora-text-eyebrow mb-2.5" style={{ fontSize: 10 }}>
@@ -482,39 +469,23 @@ function LiveDrawer({
             </>
           ) : null}
         </div>
-      </aside>
-      <DrawerArrow dir="right" target={next} onPick={onPick} />
-    </div>
+        </aside>
+        <DrawerArrow dir="right" target={next} onPick={onPick} />
+      </DialogContent>
+    </Dialog>
   )
 }
 
 function CatalogLoadMore({ remaining, onLoadMore }: { remaining: number; onLoadMore: () => void }) {
-  const ref = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    const node = ref.current
-    if (!node || remaining <= 0) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return
-        observer.disconnect()
-        onLoadMore()
-      },
-      { rootMargin: "520px 0px" },
-    )
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [remaining, onLoadMore])
-
   if (remaining <= 0) return null
   const batch = Math.min(48, remaining)
 
   return (
-    <div ref={ref} data-catalog-load-more className="aurora-catalog-load-more">
+    <div data-catalog-load-more className="aurora-catalog-load-more">
       <Button type="button" variant="neutral" size="sm" onClick={onLoadMore}>
-        Show {batch} more
+        Show {batch} More
         <span aria-hidden style={{ opacity: 0.58 }}>
-          {remaining} remaining
+          {remaining} Remaining
         </span>
       </Button>
     </div>
@@ -523,6 +494,7 @@ function CatalogLoadMore({ remaining, onLoadMore }: { remaining: number; onLoadM
 
 interface CatalogProps {
   heading?: string
+  headingLevel?: 1 | 2
   /**
    * Registry item name → Kotlin counterpart file (from lib/kotlin-map.ts).
    * When provided, the catalog shows the shadcn/Android flavor toggle; the
@@ -537,13 +509,17 @@ interface CatalogProps {
   syncUrl?: boolean
 }
 
-function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogProps) {
+function CatalogInner({ heading = "The Catalog", headingLevel = 2, kotlinMap, syncUrl }: CatalogProps) {
   const searchParams = useSearchParams()
+  const sectionRef = React.useRef<HTMLElement>(null)
+  const pendingFocusIndexRef = React.useRef<number | null>(null)
+  const drawerReturnFocusRef = React.useRef<HTMLElement | null>(null)
   const [q, setQ] = React.useState("")
   const [cat, setCat] = React.useState<string>("all")
   const [flavor, setFlavor] = React.useState<Flavor>("shadcn")
   const [open, setOpen] = React.useState<CatalogItem | null>(null)
   const [visibleLimit, setVisibleLimit] = React.useState(48)
+  const [loadAnnouncement, setLoadAnnouncement] = React.useState("")
 
   // URL → state. Runs on mount and whenever navigation (⌘K, back/forward)
   // changes the params. setState-in-effect is the correct tool: the URL is
@@ -582,10 +558,14 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
 
   const pick = React.useCallback(
     (item: CatalogItem | null) => {
+      if (item && !open) drawerReturnFocusRef.current = document.activeElement as HTMLElement | null
       setOpen(item)
       updateUrl({ c: item?.slug ?? null })
+      if (!item) {
+        window.requestAnimationFrame(() => drawerReturnFocusRef.current?.focus())
+      }
     },
-    [updateUrl],
+    [open, updateUrl],
   )
 
   const android = !!kotlinMap && flavor === "android"
@@ -612,9 +592,27 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
 
   const visibleItems = list.slice(0, visibleLimit)
   const loadMore = React.useCallback(
-    () => setVisibleLimit((limit) => Math.min(limit + 48, list.length)),
-    [list.length],
+    () => {
+      const start = Math.min(visibleLimit, list.length)
+      const nextLimit = Math.min(start + 48, list.length)
+      const added = nextLimit - start
+      if (added <= 0) return
+      pendingFocusIndexRef.current = start
+      setVisibleLimit(nextLimit)
+      setLoadAnnouncement(`${added} components added, ${list.length - nextLimit} remaining`)
+    },
+    [list.length, visibleLimit],
   )
+
+  React.useEffect(() => {
+    const index = pendingFocusIndexRef.current
+    if (index === null) return
+    const tile = sectionRef.current?.querySelectorAll<HTMLElement>(".aurora-catalog-tile")[index]
+    const openButton = tile?.querySelector<HTMLElement>("[data-catalog-open]")
+    if (!openButton) return
+    pendingFocusIndexRef.current = null
+    openButton.focus()
+  }, [visibleItems.length])
 
   // Per-category counts for the filter pills.
   const counts = React.useMemo(() => {
@@ -625,8 +623,10 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
 
   const filtering = q.trim().length > 0 || cat !== "all"
 
+  const HeadingTag = headingLevel === 1 ? "h1" : "h2"
+
   return (
-    <section style={{ marginTop: "clamp(28px, 4vw, 52px)" }}>
+    <section ref={sectionRef} style={{ marginTop: "clamp(28px, 4vw, 52px)" }}>
       <div
         style={{
           display: "flex",
@@ -641,7 +641,7 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
           <span className="aurora-text-eyebrow" style={{ color: "var(--aurora-text-muted)" }}>
             {heading}
           </span>
-          <h2 className="aurora-text-display-1" style={{ margin: "8px 0 0" }}>
+          <HeadingTag className="aurora-text-display-1" style={{ margin: "8px 0 0" }}>
             {android ? "Android · Compose" : "Components"}{" "}
             <span
               style={{
@@ -656,7 +656,7 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
               {!android ? <span className="aurora-live-dot" style={{ margin: "0 4px 1px 0", verticalAlign: "middle" }} /> : null}
               {android ? "ported" : "live"}
             </span>
-          </h2>
+          </HeadingTag>
         </div>
         {kotlinMap ? (
           <div style={{ display: "inline-flex" }}>
@@ -731,6 +731,7 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
         >
           <Search size={16} style={{ color: "var(--aurora-text-muted)", flexShrink: 0 }} />
           <input
+            aria-label="Search Components"
             value={q}
             onChange={(e) => {
               setQ(e.target.value)
@@ -764,7 +765,7 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
           ) : null}
         </label>
 
-        <div className="aurora-catalog-chips" aria-label="Component categories">
+        <div className="aurora-catalog-chips" role="group" aria-label="Component Categories">
           {["all", ...GROUPS].map((g) => {
             const on = cat === g
             return (
@@ -823,6 +824,9 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
           fontFamily: "var(--aurora-font-sans)",
         }}
       >
+        <span className="sr-only" role="status" aria-live="polite">
+          {loadAnnouncement}
+        </span>
         <span data-catalog-result-count style={{ fontSize: 11.5, color: "var(--aurora-text-muted)" }}>
           {filtering
             ? `${list.length} ${list.length === 1 ? "result" : "results"}`

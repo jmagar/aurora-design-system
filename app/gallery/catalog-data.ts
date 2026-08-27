@@ -214,4 +214,3 @@ export const GALLERY_GROUPS: GalleryCatalogGroup[] = [
     { label: "TagInput", slug: "tag-input" },
   ]},
 ]
-

@@ -87,6 +87,17 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       className={`aurora-page-shell${still ? " aurora-still" : ""}`}
       style={{ position: "relative", overflow: "clip", minHeight: "100vh" }}
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:not-sr-only focus:rounded-[9px] focus:px-4 focus:py-2"
+        style={{
+          background: "var(--aurora-panel-strong)",
+          border: "1px solid var(--aurora-accent-primary)",
+          color: "var(--aurora-text-primary)",
+        }}
+      >
+        Skip to Content
+      </a>
       <div aria-hidden className="aurora-grain" />
 
       <header
@@ -116,6 +127,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className="aurora-text-control rounded-[10px] border px-3 py-[7px] transition-colors"
                 style={navLinkStyle(active)}
               >
@@ -223,6 +235,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 onClick={() => setMenuOpen(false)}
                 className="aurora-text-control rounded-[10px] border px-3 py-[9px] transition-colors"
                 style={navLinkStyle(active)}
@@ -245,7 +258,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         </nav>
       ) : null}
 
-      <main className="relative z-10 mx-auto w-full max-w-[1160px] px-5 md:px-10">
+      <main id="main-content" tabIndex={-1} className="relative z-10 mx-auto w-full max-w-[1160px] px-5 md:px-10">
         {children}
       </main>
 

@@ -6,7 +6,7 @@ import {
   Bell,
   BookOpen,
   Boxes,
-   ExternalLink,
+  ExternalLink,
   Grid2X2,
   HardDrive,
   Layers3,
