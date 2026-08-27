@@ -16,7 +16,7 @@ import { Button } from "@/registry/aurora/ui/button"
 
 /**
  * ComponentCatalog — the CD `aurora-site` LiveCatalog, wired to OUR gallery so
- * it can never drift: every tile is a gallery NAV entry rendering its real
+ * it can never drift: every tile is a Gallery catalog entry rendering its real
  * gallery demo as a scaled live preview (lazy-mounted on scroll), and opening
  * a tile shows the interactive demo in a drawer with its install line.
  */
@@ -258,7 +258,7 @@ function DrawerArrow({
       }}
       aria-label={target ? `${dir === "left" ? "Previous" : "Next"}: ${target.label}` : undefined}
       title={target ? `${dir === "left" ? "Previous" : "Next"}: ${target.label}` : undefined}
-      className="grid size-[46px] flex-none place-items-center self-center rounded-[12px]"
+      className="aurora-catalog-drawer-arrow grid size-[46px] flex-none place-items-center self-center rounded-[12px]"
       style={{
         background: "var(--aurora-control-surface)",
         border: "1px solid var(--aurora-border-strong)",
@@ -324,6 +324,7 @@ function LiveDrawer({
   return (
     <div
       role="presentation"
+      className="aurora-catalog-drawer-backdrop"
       onClick={onClose}
       style={{
         position: "fixed",
@@ -342,6 +343,7 @@ function LiveDrawer({
       <aside
         ref={attachDrawerHost}
         role="dialog"
+        className="aurora-catalog-drawer"
         aria-modal="true"
         aria-label={item.label}
         onClick={(e) => e.stopPropagation()}
@@ -384,6 +386,36 @@ function LiveDrawer({
               {has ? ` · ${idx + 1} / ${list.length}` : null}
             </div>
           </div>
+          <div className="aurora-catalog-drawer-mobile-nav" role="group" aria-label="Browse components">
+            <button
+              type="button"
+              disabled={!prev}
+              onClick={() => prev && onPick(prev)}
+              aria-label={prev ? `Previous: ${prev.label}` : "Previous component"}
+              className="grid size-[30px] place-items-center rounded-[8px]"
+              style={{
+                border: "1px solid var(--aurora-border-default)",
+                color: "var(--aurora-text-primary)",
+                opacity: prev ? 1 : 0.4,
+              }}
+            >
+              <ArrowLeft size={14} strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              disabled={!next}
+              onClick={() => next && onPick(next)}
+              aria-label={next ? `Next: ${next.label}` : "Next component"}
+              className="grid size-[30px] place-items-center rounded-[8px]"
+              style={{
+                border: "1px solid var(--aurora-border-default)",
+                color: "var(--aurora-text-primary)",
+                opacity: next ? 1 : 0.4,
+              }}
+            >
+              <ArrowRight size={14} strokeWidth={1.8} />
+            </button>
+          </div>
           <Link
             href={`/gallery/${item.slug}`}
             className="aurora-text-control flex items-center gap-1.5 rounded-[9px] border px-3 py-[7px]"
@@ -393,7 +425,7 @@ function LiveDrawer({
               background: tint("--aurora-accent-primary", 10),
             }}
           >
-            Open in Gallery <ArrowUpRight size={13} strokeWidth={2} />
+            Full page <ArrowUpRight size={13} strokeWidth={2} />
           </Link>
           <button
             type="button"
@@ -456,6 +488,39 @@ function LiveDrawer({
   )
 }
 
+function CatalogLoadMore({ remaining, onLoadMore }: { remaining: number; onLoadMore: () => void }) {
+  const ref = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    const node = ref.current
+    if (!node || remaining <= 0) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return
+        observer.disconnect()
+        onLoadMore()
+      },
+      { rootMargin: "520px 0px" },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [remaining, onLoadMore])
+
+  if (remaining <= 0) return null
+  const batch = Math.min(48, remaining)
+
+  return (
+    <div ref={ref} data-catalog-load-more className="aurora-catalog-load-more">
+      <Button type="button" variant="neutral" size="sm" onClick={onLoadMore}>
+        Show {batch} more
+        <span aria-hidden style={{ opacity: 0.58 }}>
+          {remaining} remaining
+        </span>
+      </Button>
+    </div>
+  )
+}
+
 interface CatalogProps {
   heading?: string
   /**
@@ -467,7 +532,7 @@ interface CatalogProps {
   /**
    * Mirror catalog state into the URL (?flavor, ?q, ?c) so views are
    * shareable and ⌘K can deep-link a component drawer. Enabled on
-   * /components; the landing catalog stays state-only.
+   * /gallery; the landing-page catalog stays state-only.
    */
   syncUrl?: boolean
 }
@@ -546,6 +611,10 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
   }, [flavorItems, q, cat])
 
   const visibleItems = list.slice(0, visibleLimit)
+  const loadMore = React.useCallback(
+    () => setVisibleLimit((limit) => Math.min(limit + 48, list.length)),
+    [list.length],
+  )
 
   // Per-category counts for the filter pills.
   const counts = React.useMemo(() => {
@@ -695,7 +764,7 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
           ) : null}
         </label>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <div className="aurora-catalog-chips" aria-label="Component categories">
           {["all", ...GROUPS].map((g) => {
             const on = cat === g
             return (
@@ -809,16 +878,7 @@ function CatalogInner({ heading = "The Catalog", kotlinMap, syncUrl }: CatalogPr
               onPick={pick}
             />
           ))}
-          {visibleLimit < list.length ? (
-            <Button
-              type="button"
-              variant="neutral"
-              onClick={() => setVisibleLimit((limit) => limit + 48)}
-              style={{ minHeight: 120 }}
-            >
-              Load 48 More ({list.length - visibleLimit} Remaining)
-            </Button>
-          ) : null}
+          <CatalogLoadMore remaining={Math.max(list.length - visibleLimit, 0)} onLoadMore={loadMore} />
         </div>
       )}
 

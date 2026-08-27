@@ -18,7 +18,7 @@ function captureRuntimeFailures(page: Page) {
   return failures
 }
 
-for (const route of ["/", "/components", "/plugins", "/themes", "/gallery/buttons"]) {
+for (const route of ["/", "/gallery", "/plugins", "/themes", "/gallery/buttons"]) {
   test(`${route} renders meaningful hydrated content without runtime failures`, async ({ page }) => {
     const failures = captureRuntimeFailures(page)
     const response = await page.goto(route, { waitUntil: "networkidle" })
@@ -59,13 +59,63 @@ test("primary navigation hydrates and changes routes client-side", async ({ page
   expect(failures).toEqual([])
 })
 
-test("component catalog supports search, pagination, and a live drawer", async ({ page }) => {
-  await page.goto("/components")
+test("gallery catalog supports search, pagination, and a live drawer", async ({ page }) => {
+  await page.goto("/gallery")
   const search = page.getByPlaceholder("Fuzzy-search components…")
   await search.fill("button")
   await expect(page.getByText("Buttons", { exact: true }).first()).toBeVisible()
   await page.getByRole("button", { name: "Open Buttons" }).click()
-  await expect(page).toHaveURL(/c=buttons/)
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("button")
+  await expect.poll(() => new URL(page.url()).searchParams.get("c")).toBe("buttons")
+})
+
+test("legacy components route preserves catalog state when redirecting to gallery", async ({ page }) => {
+  await page.goto("/components?q=button&c=buttons&flavor=android")
+  const url = new URL(page.url())
+  expect(url.pathname).toBe("/gallery")
+  expect(url.searchParams.get("q")).toBe("button")
+  expect(url.searchParams.get("c")).toBe("buttons")
+  expect(url.searchParams.get("flavor")).toBe("android")
+})
+
+test("gallery is one scrollable browser without the retired component sidebar", async ({ page }) => {
+  await page.goto("/gallery", { waitUntil: "networkidle" })
+  await expect(page.locator(".aurora-gallery-nav")).toHaveCount(0)
+  await expect(page.getByPlaceholder("Fuzzy-search components…")).toBeVisible()
+
+  const geometry = await page.evaluate(() => ({
+    viewport: window.innerHeight,
+    document: document.documentElement.scrollHeight,
+  }))
+  expect(geometry.document).toBeGreaterThan(geometry.viewport)
+
+  const initialTiles = await page.locator(".aurora-catalog-tile").count()
+  expect(initialTiles).toBeGreaterThan(0)
+
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }))
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+  await expect.poll(() => page.locator(".aurora-catalog-tile").count()).toBeGreaterThan(initialTiles)
+})
+
+test("gallery viewer uses full-width internal navigation on mobile", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes("mobile"))
+  await page.goto("/gallery", { waitUntil: "networkidle" })
+  await page.locator(".aurora-catalog-tile").first().click()
+
+  const drawer = page.getByRole("dialog")
+  await expect(drawer).toBeVisible()
+  const viewportWidth = await page.evaluate(() => window.innerWidth)
+  const drawerBox = await drawer.boundingBox()
+  expect(drawerBox).not.toBeNull()
+  expect((drawerBox?.width ?? 0) / viewportWidth).toBeGreaterThan(0.9)
+  await expect(page.locator(".aurora-catalog-drawer-arrow").first()).toBeHidden()
+
+  const mobileNav = page.locator(".aurora-catalog-drawer-mobile-nav")
+  await expect(mobileNav).toBeVisible()
+  const before = await drawer.getAttribute("aria-label")
+  await mobileNav.getByRole("button", { name: /^Next:/ }).click()
+  await expect.poll(() => drawer.getAttribute("aria-label")).not.toBe(before)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1)
 })
 
 test("chat autocomplete popovers accept real pointer clicks above the transcript", async ({ page }) => {
@@ -191,7 +241,7 @@ test("rich chat turns keep hover actions inside paint-contained message items", 
 
   const assertContainedRail = async (anchor: ReturnType<typeof page.getByText>) => {
     const item = anchor.locator('xpath=ancestor::*[@data-slot="message-scroller-item"][1]')
-    const message = item.locator('[data-slot="message"]')
+    const message = item.locator('[data-slot="message"]').first()
     await message.hover()
     const itemBox = await item.boundingBox()
     const messageBox = await message.boundingBox()
@@ -211,7 +261,7 @@ test("rich chat turns keep hover actions inside paint-contained message items", 
     if (itemBox) for (const box of buttonBoxes) expect(box.bottom).toBeLessThanOrEqual(itemBox.y + itemBox.height + 0.5)
   }
 
-  await assertContainedRail(page.getByText("Sources & references"))
+  await assertContainedRail(page.getByText("References", { exact: true }))
   const reasoning = page.getByRole("button", { name: /Reasoned for 2s/i })
   await reasoning.click()
   await assertContainedRail(reasoning)
@@ -236,8 +286,8 @@ test("missing gallery routes fail without a runtime crash", async ({ page }) => 
   await expect(page.locator("body")).toContainText(/not found|404/i)
 })
 
-test("components initial load stays within transfer and responsiveness budgets", async ({ page }) => {
-  await page.goto("/components", { waitUntil: "networkidle" })
+test("gallery initial load stays within transfer and responsiveness budgets", async ({ page }) => {
+  await page.goto("/gallery", { waitUntil: "networkidle" })
   const resources = await page.evaluate(() => performance.getEntriesByType("resource")
     .filter((entry) => entry.name.includes("/_next/static/"))
     .map((entry) => ({ name: entry.name, transferSize: (entry as PerformanceResourceTiming).transferSize })))

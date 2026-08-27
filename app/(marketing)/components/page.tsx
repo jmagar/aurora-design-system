@@ -1,17 +1,21 @@
-import * as React from "react"
-import { ComponentCatalog } from "@/components/site/component-catalog"
-import { getKotlinMap } from "@/lib/kotlin-map"
+import { redirect } from "next/navigation"
 
 export const metadata = {
-  title: "Components — Aurora Design System",
-  description:
-    "The Aurora component catalog: every registry component rendered live, with fuzzy search, category filters, a shadcn/Android flavor toggle, and one-line installs.",
+  title: "Gallery — Aurora Design System",
+  description: "Aurora component browsing now lives in the Gallery.",
 }
 
-export default function ComponentsPage() {
-  return (
-    <div style={{ paddingTop: 18 }}>
-      <ComponentCatalog heading="Components" kotlinMap={getKotlinMap()} syncUrl />
-    </div>
-  )
+type LegacySearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default async function ComponentsPage({ searchParams }: { searchParams: LegacySearchParams }) {
+  const legacy = await searchParams
+  const params = new URLSearchParams()
+
+  for (const [key, value] of Object.entries(legacy)) {
+    if (Array.isArray(value)) value.forEach((entry) => params.append(key, entry))
+    else if (value != null) params.set(key, value)
+  }
+
+  const query = params.toString()
+  redirect(`/gallery${query ? `?${query}` : ""}`)
 }

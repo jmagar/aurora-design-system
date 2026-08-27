@@ -5,9 +5,9 @@ import { Blocks, Palette, SlidersHorizontal, ArrowRight } from "lucide-react"
 import { Button } from "@/registry/aurora/ui/button"
 import { Badge } from "@/registry/aurora/ui/badge"
 import { LabbyMark } from "@/components/labby-brand"
+import { ComponentCatalog } from "@/components/site/component-catalog"
 import { SpectrumBar } from "@/components/site/site-ui"
 import { PaletteWall } from "@/components/site/palette-wall"
-import { ComponentCatalog } from "@/components/site/component-catalog"
 import { panelStrong, tint } from "@/components/site/style-tokens"
 import { AURORA_THEMES, AURORA_SPECTRUM, type AuroraTheme } from "@/lib/themes"
 import registry from "@/registry.json"
@@ -28,10 +28,10 @@ const PILLARS = [
   {
     icon: <Blocks size={20} strokeWidth={1.6} />,
     tone: "--aurora-accent-primary",
-    title: "Components",
-    body: `${REGISTRY_ITEM_COUNT} registry items — ${UI_PRIMITIVE_COUNT} UI primitives plus ${BLOCK_COUNT} composed AI, workspace, files, auth, and feedback blocks. Install one with the shadcn CLI.`,
-    meta: "Browse the Catalog",
-    href: "/components",
+    title: "Gallery",
+    body: `${REGISTRY_ITEM_COUNT} registry items — ${UI_PRIMITIVE_COUNT} UI primitives plus ${BLOCK_COUNT} composed AI, workspace, files, auth, and feedback blocks. Browse them live, then install one with the shadcn CLI.`,
+    meta: "Browse Components",
+    href: "/gallery",
   },
   {
     icon: <Palette size={20} strokeWidth={1.6} />,

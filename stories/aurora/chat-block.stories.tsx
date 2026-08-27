@@ -27,7 +27,7 @@ export const InteractiveFlow: Story = {
     const input = canvas.getByRole("textbox", { name: "Message" })
 
     await expect(canvas.getByText("steering.ts")).toBeInTheDocument()
-    await expect(canvas.getByText("Sources & references")).toBeInTheDocument()
+    await expect(canvas.getByText("References")).toBeInTheDocument()
     await expect(canvas.getByRole("combobox", { name: "Model" })).toBeInTheDocument()
     await expect(canvas.getByRole("combobox", { name: "Reasoning" })).toBeInTheDocument()
     await expect(canvas.getByRole("button", { name: /Reasoned for 2s/i })).toBeInTheDocument()

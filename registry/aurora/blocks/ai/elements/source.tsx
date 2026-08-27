@@ -64,7 +64,7 @@ const Source = ({ ref, className, source, index, density = "default", style, hre
         aria-disabled={isLinked ? undefined : true}
         aria-label={host ? `${source.title}, ${host}` : source.title}
         className={cn(
-          compact ? "group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1.5 px-2 py-1.5 no-underline" : "group grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 p-3.5 no-underline",
+          compact ? "group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1.5 border-t px-0.5 py-1.5 no-underline first:border-t-0" : "group grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 p-3.5 no-underline",
           "transition-[background,border-color,box-shadow,transform] duration-150 ease-out",
           "outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--aurora-focus-ring)] focus-visible:ring-offset-0",
           isLinked &&
@@ -72,9 +72,9 @@ const Source = ({ ref, className, source, index, density = "default", style, hre
           className
         )}
         style={{
-          background: compact ? "color-mix(in srgb, var(--aurora-control-surface) 60%, transparent)" : "var(--aurora-control-surface)",
-          border: `1px solid ${compact ? "color-mix(in srgb, var(--aurora-border-default) 72%, transparent)" : "var(--aurora-border-default)"}`,
-          borderRadius: compact ? "8px" : "calc(var(--aurora-radius-1) - 4px)",
+          background: compact ? "transparent" : "var(--aurora-control-surface)",
+          border: compact ? "none" : "1px solid var(--aurora-border-default)",
+          borderRadius: compact ? 0 : "calc(var(--aurora-radius-1) - 4px)",
           color: "var(--aurora-text-primary)",
           boxShadow: compact ? "none" : "var(--aurora-highlight-medium)",
           ...style,
@@ -82,12 +82,12 @@ const Source = ({ ref, className, source, index, density = "default", style, hre
       >
         {index != null ? (
           <span
-            className={compact ? "inline-flex size-[18px] shrink-0 items-center justify-center aurora-text-control" : "inline-flex size-7 shrink-0 items-center justify-center aurora-text-control"}
+            className={compact ? "inline-flex size-4 shrink-0 items-center justify-center aurora-text-control text-[9px]" : "inline-flex size-7 shrink-0 items-center justify-center aurora-text-control"}
             aria-hidden
             style={{
               borderRadius: "calc(var(--aurora-radius-1) - 6px)",
-              background: "var(--aurora-accent-pink-surface)",
-              border: "1px solid var(--aurora-accent-pink-border)",
+              background: compact ? "transparent" : "var(--aurora-accent-pink-surface)",
+              border: compact ? "none" : "1px solid var(--aurora-accent-pink-border)",
               color: "var(--aurora-accent-pink-strong)",
               fontWeight: 700,
               fontVariantNumeric: "tabular-nums",
@@ -103,7 +103,7 @@ const Source = ({ ref, className, source, index, density = "default", style, hre
           <span className={compact ? "flex min-w-0 items-center gap-1.5" : "flex min-w-0 items-center gap-2"}>
             <span
               className="truncate aurora-text-control"
-              style={{ color: "var(--aurora-text-primary)", fontSize: compact ? 11.5 : 16, fontWeight: compact ? 650 : 700 }}
+              style={{ color: "var(--aurora-text-primary)", fontSize: compact ? 11 : 16, fontWeight: compact ? 600 : 700 }}
             >
               {source.title}
             </span>
@@ -131,7 +131,7 @@ const Source = ({ ref, className, source, index, density = "default", style, hre
 
         {isLinked ? (
           <ExternalLink
-            className={compact ? "size-3.5 shrink-0 self-center text-[var(--aurora-text-muted)] transition-colors group-hover:text-[var(--aurora-accent-primary)]" : "size-[18px] shrink-0 self-center text-[var(--aurora-text-muted)] transition-colors group-hover:text-[var(--aurora-accent-primary)]"}
+            className={compact ? "size-3 shrink-0 self-center text-[var(--aurora-text-muted)] transition-colors group-hover:text-[var(--aurora-accent-primary)]" : "size-[18px] shrink-0 self-center text-[var(--aurora-text-muted)] transition-colors group-hover:text-[var(--aurora-accent-primary)]"}
             data-density={density}
             data-source-link="true"
             aria-hidden

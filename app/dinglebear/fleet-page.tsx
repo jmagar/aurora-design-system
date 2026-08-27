@@ -6,8 +6,7 @@ import {
   Bell,
   BookOpen,
   Boxes,
-  Component,
-  ExternalLink,
+   ExternalLink,
   Grid2X2,
   HardDrive,
   Layers3,
@@ -187,8 +186,7 @@ export function DinglebearFleetPage({ registryCount }: { registryCount: number }
     }))
 
     const designItems = [
-      { id: "design-components", label: "Components", description: "shadcn-compatible Aurora primitives and blocks", path: "/components", icon: <Component size={14} aria-hidden="true" /> },
-      { id: "design-gallery", label: "Gallery", description: "Live component demos", path: "/gallery", icon: <Grid2X2 size={14} aria-hidden="true" /> },
+      { id: "design-gallery", label: "Gallery", description: "Browse Aurora primitives and blocks as live component demos", path: "/gallery", icon: <Grid2X2 size={14} aria-hidden="true" /> },
       { id: "design-themes", label: "Themes", description: "Aurora palettes for editors, terminals, browsers, shells", path: "/themes", icon: <Palette size={14} aria-hidden="true" /> },
       { id: "design-docs", label: "Docs", description: "Install, foundations, theming", path: "/docs", icon: <BookOpen size={14} aria-hidden="true" /> },
       { id: "design-plugins", label: "Plugins", description: "dendrite marketplace for Claude, Codex, and Gemini", path: "/plugins", icon: <Puzzle size={14} aria-hidden="true" /> },
@@ -248,7 +246,7 @@ export function DinglebearFleetPage({ registryCount }: { registryCount: number }
               ["#fleet", "Fleet"],
               ["#install", "Install"],
               ["#design", "Design System"],
-              ["/components", "Components"],
+              ["/gallery", "Gallery"],
               ["/plugins", "Plugins"],
               ["/themes", "Themes"],
             ].map(([href, label]) => (
@@ -451,10 +449,10 @@ export function DinglebearFleetPage({ registryCount }: { registryCount: number }
             <CodeBlock code={registryInstallCode} language="bash" filename="install.sh" />
             <div className="grid gap-4 sm:grid-cols-2">
               <DesignCard
-                href="/components"
-                icon={<Component size={17} aria-hidden="true" />}
-                title="Components"
-                body="Primitives and product blocks recolored to Aurora tokens."
+                href="/gallery"
+                icon={<Grid2X2 size={17} aria-hidden="true" />}
+                title="Gallery"
+                body="Browse primitives and product blocks as live Aurora demos."
               />
               <DesignCard
                 href="/themes"
@@ -525,7 +523,7 @@ export function DinglebearFleetPage({ registryCount }: { registryCount: number }
             {[
               ["#fleet", "Fleet", undefined],
               ["#install", "Install", undefined],
-              ["/components", "Components", undefined],
+              ["/gallery", "Gallery", undefined],
               ["/plugins", "Plugins", undefined],
               ["/themes", "Themes", undefined],
               ["/docs", "Docs", undefined],

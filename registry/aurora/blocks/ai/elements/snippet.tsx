@@ -146,8 +146,8 @@ const Snippet = ({ ref, code, language = "tsx", density = "default", className, 
       style={{
         background: compact ? "color-mix(in srgb, var(--aurora-panel-strong) 92%, transparent)" : "var(--aurora-panel-strong)",
         border: "1px solid var(--aurora-border-default)",
-        borderRadius: compact ? "10px" : "var(--aurora-radius-2)",
-        boxShadow: compact ? "var(--aurora-highlight-medium)" : "var(--aurora-shadow-medium), var(--aurora-highlight-medium)",
+        borderRadius: compact ? "8px" : "var(--aurora-radius-2)",
+        boxShadow: compact ? "none" : "var(--aurora-shadow-medium), var(--aurora-highlight-medium)",
         overflow: "hidden",
         ...style,
       }}
@@ -155,7 +155,7 @@ const Snippet = ({ ref, code, language = "tsx", density = "default", className, 
       <div
         className="flex items-center justify-between gap-3"
         style={{
-          padding: compact ? "6px 8px" : "12px 14px",
+          padding: compact ? "5px 7px" : "12px 14px",
           borderBottom: "1px solid var(--aurora-border-default)",
           background: compact
             ? "color-mix(in srgb, var(--aurora-panel-medium) 52%, transparent)"
@@ -179,7 +179,7 @@ const Snippet = ({ ref, code, language = "tsx", density = "default", className, 
           padding: compact ? "8px 10px" : "16px 18px",
           background: "transparent",
           color: "var(--aurora-text-primary)",
-          fontSize: compact ? "12px" : undefined,
+          fontSize: compact ? "11.5px" : undefined,
           lineHeight: compact ? 1.5 : 1.7,
           whiteSpace: "pre",
         }}
