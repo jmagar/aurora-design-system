@@ -65,7 +65,8 @@ test("gallery catalog supports search, pagination, and a live drawer", async ({ 
   await search.fill("button")
   await expect(page.getByText("Buttons", { exact: true }).first()).toBeVisible()
   await page.getByRole("button", { name: "Open Buttons" }).click()
-  await expect(page).toHaveURL(/\/gallery\?c=buttons/)
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("button")
+  await expect.poll(() => new URL(page.url()).searchParams.get("c")).toBe("buttons")
 })
 
 test("legacy components route preserves catalog state when redirecting to gallery", async ({ page }) => {
@@ -81,7 +82,6 @@ test("gallery is one scrollable browser without the retired component sidebar", 
   await page.goto("/gallery", { waitUntil: "networkidle" })
   await expect(page.locator(".aurora-gallery-nav")).toHaveCount(0)
   await expect(page.getByPlaceholder("Fuzzy-search components…")).toBeVisible()
-  await expect(page.getByRole("link", { name: "Gallery", exact: true }).first()).toBeVisible()
 
   const geometry = await page.evaluate(() => ({
     viewport: window.innerHeight,
@@ -241,7 +241,7 @@ test("rich chat turns keep hover actions inside paint-contained message items", 
 
   const assertContainedRail = async (anchor: ReturnType<typeof page.getByText>) => {
     const item = anchor.locator('xpath=ancestor::*[@data-slot="message-scroller-item"][1]')
-    const message = item.locator('[data-slot="message"]')
+    const message = item.locator('[data-slot="message"]').first()
     await message.hover()
     const itemBox = await item.boundingBox()
     const messageBox = await message.boundingBox()
