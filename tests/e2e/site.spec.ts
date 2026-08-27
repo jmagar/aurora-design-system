@@ -59,9 +59,22 @@ test("primary navigation hydrates and changes routes client-side", async ({ page
   expect(failures).toEqual([])
 })
 
+test("site shell exposes skip navigation and the active route", async ({ page }) => {
+  await page.goto("/gallery", { waitUntil: "networkidle" })
+  await expect(page.getByRole("heading", { level: 1, name: /Components/ })).toHaveCount(1)
+  await expect(page.locator('a[href="/gallery"][aria-current="page"]')).toHaveCount(1)
+
+  await page.keyboard.press("Tab")
+  const skipLink = page.getByRole("link", { name: "Skip to Content" })
+  await expect(skipLink).toBeFocused()
+  await skipLink.press("Enter")
+  await expect(page.locator("#main-content")).toBeFocused()
+})
+
 test("gallery catalog supports search, pagination, and a live drawer", async ({ page }) => {
   await page.goto("/gallery")
-  const search = page.getByPlaceholder("Fuzzy-search components…")
+  const search = page.getByRole("textbox", { name: "Search Components" })
+  await expect(page.getByRole("group", { name: "Component Categories" })).toBeVisible()
   await search.fill("button")
   await expect(page.getByText("Buttons", { exact: true }).first()).toBeVisible()
   await page.getByRole("button", { name: "Open Buttons" }).click()
@@ -78,10 +91,10 @@ test("legacy components route preserves catalog state when redirecting to galler
   expect(url.searchParams.get("flavor")).toBe("android")
 })
 
-test("gallery is one scrollable browser without the retired component sidebar", async ({ page }) => {
+test("gallery loads bounded batches explicitly and preserves keyboard focus", async ({ page }) => {
   await page.goto("/gallery", { waitUntil: "networkidle" })
   await expect(page.locator(".aurora-gallery-nav")).toHaveCount(0)
-  await expect(page.getByPlaceholder("Fuzzy-search components…")).toBeVisible()
+  await expect(page.getByRole("textbox", { name: "Search Components" })).toBeVisible()
 
   const geometry = await page.evaluate(() => ({
     viewport: window.innerHeight,
@@ -90,17 +103,48 @@ test("gallery is one scrollable browser without the retired component sidebar", 
   expect(geometry.document).toBeGreaterThan(geometry.viewport)
 
   const initialTiles = await page.locator(".aurora-catalog-tile").count()
-  expect(initialTiles).toBeGreaterThan(0)
+  expect(initialTiles).toBe(48)
 
   await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }))
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
-  await expect.poll(() => page.locator(".aurora-catalog-tile").count()).toBeGreaterThan(initialTiles)
+  await expect(page.locator(".aurora-catalog-tile")).toHaveCount(initialTiles)
+
+  await page.getByRole("button", { name: /Show 48 More/ }).click()
+  await expect(page.locator(".aurora-catalog-tile")).toHaveCount(initialTiles + 48)
+  await expect(page.locator(".aurora-catalog-tile").nth(initialTiles).getByRole("button")).toBeFocused()
+  await expect(page.getByRole("status").filter({ hasText: /48 components added/ })).toBeAttached()
+})
+
+test("gallery drawer traps focus, announces navigation, and restores focus", async ({ page }) => {
+  await page.goto("/gallery", { waitUntil: "networkidle" })
+  const firstTile = page.locator(".aurora-catalog-tile").first().getByRole("button")
+  await firstTile.focus()
+  await firstTile.press("Enter")
+
+  const drawer = page.getByRole("dialog")
+  await expect(drawer).toBeVisible()
+  await expect(drawer.getByRole("heading")).toBeFocused()
+  await page.keyboard.press("Shift+Tab")
+  await expect.poll(() => drawer.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+  const lastVisibleButton = drawer.getByRole("button").last()
+  await lastVisibleButton.focus()
+  await page.keyboard.press("Tab")
+  await expect.poll(() => drawer.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+  await drawer.getByRole("heading").focus()
+  const originalTitle = await drawer.getByRole("heading").textContent()
+  await drawer.getByRole("button", { name: /^Next:/ }).first().click()
+  await expect(drawer.getByRole("heading")).not.toHaveText(originalTitle ?? "")
+  await expect(drawer.getByRole("status")).toContainText(/item \d+ of \d+/)
+
+  await page.keyboard.press("Escape")
+  await expect(drawer).toBeHidden()
+  await expect(firstTile).toBeFocused()
 })
 
 test("gallery viewer uses full-width internal navigation on mobile", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("mobile"))
   await page.goto("/gallery", { waitUntil: "networkidle" })
-  await page.locator(".aurora-catalog-tile").first().click()
+  await page.locator(".aurora-catalog-tile").first().getByRole("button").click()
 
   const drawer = page.getByRole("dialog")
   await expect(drawer).toBeVisible()
@@ -112,9 +156,9 @@ test("gallery viewer uses full-width internal navigation on mobile", async ({ pa
 
   const mobileNav = page.locator(".aurora-catalog-drawer-mobile-nav")
   await expect(mobileNav).toBeVisible()
-  const before = await drawer.getAttribute("aria-label")
+  const before = await drawer.getByRole("heading").textContent()
   await mobileNav.getByRole("button", { name: /^Next:/ }).click()
-  await expect.poll(() => drawer.getAttribute("aria-label")).not.toBe(before)
+  await expect(drawer.getByRole("heading")).not.toHaveText(before ?? "")
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1)
 })
 

@@ -12,7 +12,7 @@ export const metadata = {
 export default function GalleryIndex() {
   return (
     <div className="pb-8 pt-1">
-      <ComponentCatalog heading="Gallery" kotlinMap={getKotlinMap()} syncUrl />
+      <ComponentCatalog heading="Gallery" headingLevel={1} kotlinMap={getKotlinMap()} syncUrl />
     </div>
   )
 }
