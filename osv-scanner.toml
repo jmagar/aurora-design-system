@@ -2,7 +2,7 @@
 #
 # Entries here suppress advisories that cannot currently be resolved by any
 # dependency change. Everything that CAN be fixed is fixed instead — see the
-# pnpm.overrides block in package.json, which pins away from advisories for
+# overrides block in pnpm-workspace.yaml, which pins away from advisories for
 # brace-expansion, fast-uri, ip-address, js-yaml, postcss, and undici.
 #
 # Each entry must record why it cannot be fixed and carry an ignoreUntil date
