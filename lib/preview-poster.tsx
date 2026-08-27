@@ -4,7 +4,7 @@ import * as React from "react"
 
 /**
  * True while a demo renders as a catalog *poster* — the scaled, aria-hidden,
- * pointer-events:none thumbnail in a /components tile.
+ * pointer-events:none thumbnail in a /gallery tile.
  *
  * Demos open their overlays by default so the gallery and the detail drawer
  * show the component in its interesting state. In a tile that backfires: Radix

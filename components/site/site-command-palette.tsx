@@ -37,7 +37,7 @@ const SECTIONS = [
 
 const PAGE_ITEMS: { label: string; href: string; icon: React.ReactNode }[] = [
   { label: "Overview", href: "/", icon: <House size={15} strokeWidth={1.6} /> },
-  { label: "Components", href: "/components", icon: <Blocks size={15} strokeWidth={1.6} /> },
+  { label: "Gallery", href: "/gallery", icon: <Blocks size={15} strokeWidth={1.6} /> },
   { label: "Themes", href: "/themes", icon: <Palette size={15} strokeWidth={1.6} /> },
   { label: "Plugins", href: "/plugins", icon: <Puzzle size={15} strokeWidth={1.6} /> },
   { label: "Tokens", href: "/tokens", icon: <SlidersHorizontal size={15} strokeWidth={1.6} /> },
@@ -75,15 +75,15 @@ export function SiteCommandPalette({
         icon: p.icon,
         onSelect: go(p.href),
       })),
-      // Components open in the /components drawer (deep-linked via ?c=…),
-      // matching the CD behavior of showing the component in place.
+      // Components open in the canonical /gallery drawer (deep-linked via ?c=…),
+      // keeping search, filtering, and focused preview in one browsing surface.
       ...catalog.items.map((it) => ({
           id: `comp-${it.slug}`,
           label: it.label,
           description: it.group,
           section: "components",
           icon: <Blocks size={15} strokeWidth={1.6} />,
-          onSelect: go(`/components?c=${it.slug}`),
+          onSelect: go(`/gallery?c=${it.slug}`),
         })),
       ...AURORA_THEMES.map((t) => ({
         id: `theme-${t.id}`,

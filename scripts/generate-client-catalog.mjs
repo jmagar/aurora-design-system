@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs"
 
-import { NAV } from "../app/gallery/nav-data.ts"
+import { GALLERY_GROUPS } from "../app/gallery/catalog-data.ts"
 import { slugToRegistry } from "../lib/slug-map.ts"
 
 const registry = JSON.parse(readFileSync(new URL("../registry.json", import.meta.url), "utf8"))
 const byName = new Map(registry.items.map((item) => [item.name, item]))
-const groups = NAV.map((group) => group.group)
-const items = NAV.flatMap((group) => group.items.map((navItem) => {
-  const name = slugToRegistry(navItem.slug)
+const groups = GALLERY_GROUPS.map((group) => group.group)
+const items = GALLERY_GROUPS.flatMap((group) => group.items.map((catalogItem) => {
+  const name = slugToRegistry(catalogItem.slug)
   const item = name ? byName.get(name) : undefined
   return {
-    slug: navItem.slug,
-    label: navItem.label,
+    slug: catalogItem.slug,
+    label: catalogItem.label,
     group: group.group,
     description: item?.description ?? "",
     registry: item?.name ?? null,

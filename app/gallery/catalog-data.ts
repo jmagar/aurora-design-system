@@ -1,18 +1,18 @@
-// Gallery sidebar navigation — pure data, no React/next imports so it can be
-// imported by Node's `--test` runner for the slug-consistency gate
-// (tests/gallery-slug-consistency.test.ts). app/gallery/layout.tsx renders it.
+// Canonical Gallery grouping data — pure data, no React/Next imports so the
+// client-catalog generator and Node consistency gates consume the same ordered
+// component universe as the scrollable Gallery browser.
 
-export interface NavItem {
+export interface GalleryCatalogItem {
   label: string
   slug: string
 }
 
-export interface NavGroup {
+export interface GalleryCatalogGroup {
   group: string
-  items: NavItem[]
+  items: GalleryCatalogItem[]
 }
 
-export const NAV: NavGroup[] = [
+export const GALLERY_GROUPS: GalleryCatalogGroup[] = [
   { group: "Foundations", items: [
     { label: "Color Tokens", slug: "colors" },
     { label: "Typography", slug: "type" },
@@ -215,17 +215,3 @@ export const NAV: NavGroup[] = [
   ]},
 ]
 
-export const NAV_SLUG_ALIASES: Record<string, string> = {
-  tokens: "colors",
-  typography: "type",
-  button: "buttons",
-  badge: "badges",
-  banner: "banners",
-  toast: "toasts",
-  "empty-state": "empty",
-  "stat-card": "stats",
-  "filter-bar": "filters",
-  dialog: "modals",
-  "dropdown-menu": "dropdowns",
-  "error-page": "error-pages",
-}

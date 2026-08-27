@@ -1,4 +1,5 @@
 import * as React from "react"
+import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import galleryManifest from "@/lib/gallery-manifest.json"
 import { formatSectionTitle, getRegistryMeta, SECTION_REDIRECTS } from "@/lib/registry-meta"
@@ -51,10 +52,14 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
       <header className="grid gap-4" style={{ width: "min(760px, 100%)", minWidth: 0 }}>
         <div>
           <p
-            className="aurora-text-eyebrow"
+            className="aurora-text-eyebrow flex items-center gap-1.5"
             style={{ margin: "0 0 6px", color: "var(--aurora-text-muted)" }}
           >
-            Components
+            <Link href="/gallery" style={{ color: "var(--aurora-accent-strong)" }}>
+              Gallery
+            </Link>
+            <span aria-hidden="true">/</span>
+            <span>Component</span>
           </p>
           <h1
             className="aurora-text-display-1"

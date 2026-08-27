@@ -19,7 +19,7 @@ import { tint } from "@/components/site/style-tokens"
 import { readBrowserStorage, writeBrowserStorage } from "@/lib/browser-storage"
 
 const NAV = [
-  { label: "Components", href: "/components" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Themes", href: "/themes" },
   { label: "Plugins", href: "/plugins" },
   { label: "Tokens", href: "/tokens" },
@@ -32,7 +32,7 @@ const GITHUB_URL = "https://github.com/jmagar/aurora"
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/"
   if (href === "/themes") return pathname === "/themes" || pathname.startsWith("/themes/")
-  if (href === "/components") return pathname.startsWith("/components") || pathname.startsWith("/gallery")
+  if (href === "/gallery") return pathname.startsWith("/gallery") || pathname.startsWith("/components")
   if (href === "/docs") return pathname === "/docs" || pathname.startsWith("/docs/")
   return pathname.startsWith(href)
 }

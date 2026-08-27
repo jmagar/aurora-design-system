@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import test from "node:test"
 
-import { NAV, NAV_SLUG_ALIASES } from "../app/gallery/nav-data.ts"
+import { GALLERY_GROUPS } from "../app/gallery/catalog-data.ts"
 import { SLUG_TO_REGISTRY, slugToRegistry } from "../lib/slug-map.ts"
 
 // ---------------------------------------------------------------------------
@@ -12,7 +12,7 @@ import { SLUG_TO_REGISTRY, slugToRegistry } from "../lib/slug-map.ts"
 // The gallery slug space is spread across several hand-maintained maps that can
 // silently drift apart:
 //   - lib/slug-map.ts        SLUG_TO_REGISTRY + slugToRegistry (slug → registry name)
-//   - app/gallery/nav-data.ts  NAV + NAV_SLUG_ALIASES (sidebar)
+//   - app/gallery/catalog-data.ts  GALLERY_GROUPS (browser grouping + order)
 //   - app/gallery/[section]/page.tsx  DEMOS (routable demo pages)
 //   - registry.json / public/r/<name>.json  the actual registry items
 //
@@ -57,20 +57,17 @@ const NON_REGISTRY_DEMOS = new Set<string>([
   "new-components", // changelog-style overview page, not an installable component
 ])
 
-test("every NAV slug (after aliasing) resolves to a routable demo", () => {
+test("every Gallery catalog slug resolves to a routable demo", () => {
   const orphans: string[] = []
-  for (const group of NAV) {
+  for (const group of GALLERY_GROUPS) {
     for (const item of group.items) {
-      const resolved = NAV_SLUG_ALIASES[item.slug] ?? item.slug
-      if (!DEMO_KEYS.has(resolved)) {
-        orphans.push(`${item.slug}${resolved === item.slug ? "" : ` → ${resolved}`}`)
-      }
+      if (!DEMO_KEYS.has(item.slug)) orphans.push(item.slug)
     }
   }
   assert.deepEqual(
     orphans,
     [],
-    `NAV slugs with no matching DEMOS entry: ${orphans.join(", ")}`,
+    `Gallery catalog slugs with no matching DEMOS entry: ${orphans.join(", ")}`,
   )
 })
 
